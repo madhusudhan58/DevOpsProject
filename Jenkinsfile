@@ -1,27 +1,25 @@
 pipeline {
 
- agent any
+    agent any
 
- stages {
+    stages {
 
-   stage('Git Checkout') {
-      steps {
-         checkout scm
-      }
-   }
+        stage('Git Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
-   stage('Build') {
-      steps {
-         bat 'python app.py'
-      }
-   }
+        stage('Build') {
+            steps {
+                bat '"C:\\Users\\Lenovo\\AppData\\Local\\Programs\\Python\\Python313\\python.exe" app.py'
+            }
+        }
 
-   stage('Test') {
-      steps {
-         echo 'Testing Successful'
-      }
-   }
-
- }
-
+        stage('Test') {
+            steps {
+                echo 'Build Successful'
+            }
+        }
+    }
 }

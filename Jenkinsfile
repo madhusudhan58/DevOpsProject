@@ -4,7 +4,7 @@ pipeline {
 
     environment {
 
-        IMAGE_NAME = "madhusudhan58/devopsproject"
+        IMAGE = 'madhu58/devopsproject'
 
     }
 
@@ -24,7 +24,7 @@ pipeline {
 
             steps {
 
-                bat 'docker build -t %IMAGE_NAME% .'
+                bat 'docker build -t %IMAGE% .'
 
             }
 
@@ -35,9 +35,14 @@ pipeline {
             steps {
 
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS')]) {
+
+                credentialsId: 'dockerhub',
+
+                usernameVariable: 'USER',
+
+                passwordVariable: 'PASS'
+
+                )]) {
 
                     bat 'echo %PASS% | docker login -u %USER% --password-stdin'
 
@@ -51,7 +56,7 @@ pipeline {
 
             steps {
 
-                bat 'docker tag %IMAGE_NAME% %IMAGE_NAME%:v1'
+                bat 'docker tag %IMAGE%:latest %IMAGE%:v1'
 
             }
 
@@ -61,7 +66,7 @@ pipeline {
 
             steps {
 
-                bat 'docker push %IMAGE_NAME%:v1'
+                bat 'docker push %IMAGE%:v1'
 
             }
 

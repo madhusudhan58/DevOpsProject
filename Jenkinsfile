@@ -1,34 +1,72 @@
 pipeline {
+
     agent any
+
+    environment {
+
+        IMAGE_NAME = "madhusudhan58/devopsproject"
+
+    }
 
     stages {
 
-        stage('Git Checkout') {
+        stage('Checkout') {
+
             steps {
+
                 checkout scm
+
             }
+
         }
 
-        stage('Check Python') {
+        stage('Build Docker Image') {
+
             steps {
-                bat '''
-                "C:\\Users\\Lenovo\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe" --version
-                '''
+
+                bat 'docker build -t %IMAGE_NAME% .'
+
             }
+
         }
 
-        stage('Build') {
+        stage('Docker Login') {
+
             steps {
-                bat '''
-                "C:\\Users\\Lenovo\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe" app.py
-                '''
+
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS')]) {
+
+                    bat 'echo %PASS% | docker login -u %USER% --password-stdin'
+
+                }
+
             }
+
         }
 
-        stage('Test') {
+        stage('Tag Image') {
+
             steps {
-                echo 'Build Successful'
+
+                bat 'docker tag %IMAGE_NAME% %IMAGE_NAME%:v1'
+
             }
+
         }
+
+        stage('Push Image') {
+
+            steps {
+
+                bat 'docker push %IMAGE_NAME%:v1'
+
+            }
+
+        }
+
     }
+
 }

@@ -4,7 +4,8 @@ pipeline {
 
     environment {
 
-        IMAGE = 'madhu58/devopsproject'
+        IMAGE_NAME = "madhu58/devopsproject"
+        IMAGE_TAG = "v1"
 
     }
 
@@ -24,7 +25,7 @@ pipeline {
 
             steps {
 
-                bat 'docker build -t %IMAGE% .'
+                bat 'docker build -t %IMAGE_NAME%:latest .'
 
             }
 
@@ -34,17 +35,19 @@ pipeline {
 
             steps {
 
-                withCredentials([usernamePassword(
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
 
-                credentialsId: 'dockerhub',
-
-                usernameVariable: 'USER',
-
-                passwordVariable: 'PASS'
-
-                )]) {
-
-                    bat 'echo %PASS% | docker login -u %USER% --password-stdin'
+                    bat '''
+                    docker logout
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    docker info
+                    '''
 
                 }
 
@@ -56,7 +59,7 @@ pipeline {
 
             steps {
 
-                bat 'docker tag %IMAGE%:latest %IMAGE%:v1'
+                bat 'docker tag %IMAGE_NAME%:latest %IMAGE_NAME%:%IMAGE_TAG%'
 
             }
 
@@ -66,9 +69,48 @@ pipeline {
 
             steps {
 
-                bat 'docker push %IMAGE%:v1'
+                bat 'docker push %IMAGE_NAME%:%IMAGE_TAG%'
 
             }
+
+        }
+
+        stage('Pull Image Test') {
+
+            steps {
+
+                bat 'docker pull %IMAGE_NAME%:%IMAGE_TAG%'
+
+            }
+
+        }
+
+        stage('Run Container') {
+
+            steps {
+
+                bat '''
+                docker rm -f devopsapp || exit 0
+                docker run -d --name devopsapp %IMAGE_NAME%:%IMAGE_TAG%
+                '''
+
+            }
+
+        }
+
+    }
+
+    post {
+
+        success {
+
+            echo 'CI/CD Pipeline Completed Successfully'
+
+        }
+
+        failure {
+
+            echo 'Pipeline Failed'
 
         }
 
